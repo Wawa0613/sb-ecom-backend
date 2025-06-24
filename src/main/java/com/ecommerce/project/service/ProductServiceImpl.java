@@ -10,7 +10,7 @@ import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.repositories.CartRepository;
 import com.ecommerce.project.repositories.CategoryRepository;
-import com.ecommerce.project.repositories.ProductRespository;
+import com.ecommerce.project.repositories.ProductRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class ProductServiceImpl implements ProductService{
 
     @Autowired
-    private ProductRespository productRespository;
+    private ProductRepository productRepository;
 
     @Autowired
    private CategoryRepository categoryRepository;
@@ -68,7 +68,7 @@ public class ProductServiceImpl implements ProductService{
             double specialPrice = product.getPrice() -
                     ((product.getDiscount() * 0.01) * product.getPrice());
             product.setSpecialPrice(specialPrice);
-            Product savedProduct = productRespository.save(product);
+            Product savedProduct = productRepository.save(product);
 
             return modelMapper.map(savedProduct, ProductDTO.class);
         }else {
@@ -83,7 +83,7 @@ public class ProductServiceImpl implements ProductService{
                : Sort.by(sortBy).descending();
 
         Pageable pageDetails= PageRequest.of(pageNumber, pageSize, sortByAndOrder);
-        Page<Product> pageProducts=productRespository.findAll(pageDetails);
+        Page<Product> pageProducts=productRepository.findAll(pageDetails);
 
         List<Product>products=pageProducts.getContent();
 
@@ -113,7 +113,7 @@ public class ProductServiceImpl implements ProductService{
                 : Sort.by(sortBy).descending();
 
         Pageable pageDetails= PageRequest.of(pageNumber, pageSize, sortByAndOrder);
-        Page<Product> pageProducts=productRespository.findByCategoryOrderByPriceAsc(category, pageDetails);
+        Page<Product> pageProducts=productRepository.findByCategoryOrderByPriceAsc(category, pageDetails);
 
         List<Product>products=pageProducts.getContent();
 
@@ -140,7 +140,7 @@ public class ProductServiceImpl implements ProductService{
                 : Sort.by(sortBy).descending();
 
         Pageable pageDetails= PageRequest.of(pageNumber, pageSize, sortByAndOrder);
-        Page<Product> pageProducts=productRespository.findByProductNameLikeIgnoreCase('%'+keyword+'%', pageDetails);
+        Page<Product> pageProducts=productRepository.findByProductNameLikeIgnoreCase('%'+keyword+'%', pageDetails);
         List<Product>products=pageProducts.getContent();
 
         List<ProductDTO> productDTOS=products.stream()
@@ -162,7 +162,7 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
-        Product productFromDb=productRespository.findById(productId)
+        Product productFromDb=productRepository.findById(productId)
                 .orElseThrow(()->new ResourceNotFoundException("Product", "productId", productId));
         Product product=modelMapper.map(productDTO,Product.class);
         productFromDb.setProductName(product.getProductName());
@@ -171,7 +171,7 @@ public class ProductServiceImpl implements ProductService{
         productFromDb.setDiscount(product.getDiscount());
         productFromDb.setPrice(product.getPrice());
         productFromDb.setSpecialPrice(product.getSpecialPrice());
-       Product savedProduct= productRespository.save(productFromDb);
+       Product savedProduct= productRepository.save(productFromDb);
 
 
        //这段代码是 ProductServiceImpl 类中的 updateProduct 方法，主要用于更新产品信息并同步购物车中的相关数据。
@@ -195,24 +195,24 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     public ProductDTO deleteProduct(Long productId) {
-        Product product=productRespository.findById(productId)
+        Product product=productRepository.findById(productId)
                 .orElseThrow(()->new ResourceNotFoundException("Product", "productId", productId));
         //如果该商品被删除了，在cart里也应该被删除。
         List<Cart> carts = cartRepository.findCartsByProductId(productId);
         carts.forEach(cart->cartService.deleteProductFromCart(cart.getCartId(), productId));
 
-        productRespository.delete(product);
+        productRepository.delete(product);
         return modelMapper.map(product,ProductDTO.class);
     }
 
     @Override
     public ProductDTO updateProductImage(Long productId, MultipartFile image) throws IOException {
-        Product productFromDb=productRespository.findById(productId)
+        Product productFromDb=productRepository.findById(productId)
                 .orElseThrow(()->new ResourceNotFoundException("Product","productId",productId));
 
         String fileName=fileService.uploadImage(path, image);
         productFromDb.setImage(fileName);
-        Product updatedProduct=productRespository.save(productFromDb);
+        Product updatedProduct=productRepository.save(productFromDb);
 
         return modelMapper.map(updatedProduct, ProductDTO.class);
     }

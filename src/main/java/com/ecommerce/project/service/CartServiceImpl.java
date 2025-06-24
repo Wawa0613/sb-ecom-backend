@@ -11,7 +11,7 @@ import com.ecommerce.project.payload.CartItemDTO;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.repositories.CartItemRepository;
 import com.ecommerce.project.repositories.CartRepository;
-import com.ecommerce.project.repositories.ProductRespository;
+import com.ecommerce.project.repositories.ProductRepository;
 import com.ecommerce.project.util.AuthUtil;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -30,7 +30,7 @@ public class CartServiceImpl implements CartService{
    private AuthUtil authUtil;
 
     @Autowired
-    ProductRespository productRespository;
+    ProductRepository productRepository;
 
     @Autowired
     CartItemRepository cartItemRepository;
@@ -42,7 +42,7 @@ public class CartServiceImpl implements CartService{
 
         Cart cart=createdCart();
 
-        Product product=productRespository.findById(productId)
+        Product product=productRepository.findById(productId)
                 .orElseThrow(()-> new ResourceNotFoundException("Product","productId",productId));
 
       CartItem newCartItem= cartItemRepository.findCartItemByProductIdAndCartId(
@@ -131,7 +131,7 @@ public class CartServiceImpl implements CartService{
         Cart cart=cartRepository.findById(cartId)
                 .orElseThrow(()->new ResourceNotFoundException("Cart","cartId",cartId));
 
-        Product product=productRespository.findById(productId)
+        Product product=productRepository.findById(productId)
                 .orElseThrow(()-> new ResourceNotFoundException("Product","productId",productId));
 
         if(product.getQuantity()==0){
@@ -216,7 +216,7 @@ productStream.toList()：将映射后的 ProductDTO 流转换为列表。
         Cart cart=cartRepository.findById(cartId)
                 .orElseThrow(()->new ResourceNotFoundException("Cart","cartId",cartId));
 
-        Product product=productRespository.findById(productId)
+        Product product=productRepository.findById(productId)
                 .orElseThrow(()-> new ResourceNotFoundException("Product","productId",productId));
         CartItem cartItem= cartItemRepository.findCartItemByProductIdAndCartId(cartId,productId);
         if(cartItem==null){
